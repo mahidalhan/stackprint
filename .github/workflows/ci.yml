@@ -23,3 +23,16 @@ jobs:
       - run: npm install --ignore-scripts
       - run: npm run check
       - run: npm test
+  atlas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install --ignore-scripts
+      - run: npm run atlas:verify
+      - run: npm --prefix web install --ignore-scripts
+      - run: npm run web:test
+      - run: npm run web:build

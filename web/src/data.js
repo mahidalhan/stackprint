@@ -299,6 +299,7 @@ export const FILTERS = [
   "Hardware",
   "Data",
   "Developer tools",
+  "Investing",
 ];
 
 export const HERO_LAYERS = [

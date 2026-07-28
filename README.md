@@ -58,6 +58,15 @@ evidence. Every curated tool claim links to its source and states whether it was
 self-reported, recommended, discussed, or used in a product integration. These
 profiles are not device scans and do not claim current use or endorsement.
 
+The large public-evidence index is generated rather than bundled into the app:
+the atlas downloads compact searchable summaries, renders 60 cards at a time,
+and lazy-loads one full profile when it is opened. Investor eligibility comes
+from the attributed [Angel Club public index](https://www.angelclub.com/resources);
+tool and workflow claims come from public X posts read through Bird CLI. Raw
+post text and contact data are not published. See
+[`docs/public-atlas.md`](docs/public-atlas.md) for the evidence contract and
+reproduction commands.
+
 ```bash
 npm --prefix web install
 npm run web:dev

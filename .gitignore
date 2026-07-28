@@ -7,3 +7,6 @@ web/node_modules/
 web/dist/
 web/.vercel/
 web/.shots/
+research/angels/.cache/
+research/angels/candidates.json
+research/angels/evidence.ndjson

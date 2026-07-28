@@ -20,6 +20,13 @@
   "scripts": {
     "test": "node --test",
     "check": "node --check src/cli.js && node --check src/catalog.js && node --check src/discovery.js && node --check src/profile.js && node --check src/publish.js && node --check src/render.js",
+    "atlas:candidates": "node scripts/atlas/collect-candidates.mjs",
+    "atlas:evidence": "node scripts/atlas/collect-evidence.mjs",
+    "atlas:evidence-search": "node scripts/atlas/collect-search-evidence.mjs",
+    "atlas:build": "node scripts/atlas/build-profiles.mjs",
+    "atlas:check": "node scripts/atlas/check-profiles.mjs",
+    "atlas:status": "node scripts/atlas/status.mjs",
+    "atlas:verify": "node scripts/atlas/check-profiles.mjs --min 1000",
     "web:dev": "npm --prefix web run dev",
     "web:build": "npm --prefix web run build",
     "web:test": "npm --prefix web test",

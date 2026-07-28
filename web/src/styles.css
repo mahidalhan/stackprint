@@ -482,6 +482,33 @@ svg {
   padding: 34px 34px 26px;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
+  content-visibility: auto;
+  contain-intrinsic-size: 284px;
+}
+
+.catalog-more {
+  display: flex;
+  min-height: 96px;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  border-bottom: 1px solid var(--line);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+}
+
+.catalog-more button {
+  min-height: 42px;
+  border: 1px solid var(--ink);
+  padding: 0 18px;
+  background: var(--ink);
+  color: var(--paper-light);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .builder-tile:nth-child(3n) {
@@ -744,6 +771,24 @@ svg {
   color: var(--ink);
   font-size: 0.75rem;
   text-decoration: none;
+}
+
+.role-evidence-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 0 14px;
+  color: var(--blue);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+
+.role-evidence-link:hover,
+.role-evidence-link:focus-visible {
+  color: var(--orange);
 }
 
 .x-link svg {

@@ -1,9 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   BUILDERS,
   FILTERS,
   HERO_LAYERS,
 } from "./data.js";
+import { getAtlasProfile, listAtlasProfiles } from "./atlas.js";
 import { PublishPanel } from "./components/PublishPanel.jsx";
 import { filterBuilders } from "./profile-utils.js";
 import {
@@ -118,7 +124,11 @@ function BuilderTile({ builder, onOpen }) {
         <div className="builder-count">
           {builder.count} {builder.curated ? "sourced tools" : "tools"}
           {builder.curated ? (
-            <span>public evidence</span>
+            <span>
+              {builder.evidenceMode === "automated-public-mention"
+                ? "public index"
+                : "public evidence"}
+            </span>
           ) : builder.demo ? (
             <span>demo</span>
           ) : builder.published ? (
@@ -146,15 +156,26 @@ function Atlas({
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All");
   const [sort, setSort] = useState("Recently added");
+  const [displayCount, setDisplayCount] = useState(60);
+  const deferredQuery = useDeferredValue(query);
+  const builderOrder = useMemo(
+    () => new Map(builders.map((builder, index) => [builder.slug, index])),
+    [builders],
+  );
 
   const visibleBuilders = useMemo(() => {
-    const filtered = filterBuilders(builders, query, filter);
+    const filtered = filterBuilders(builders, deferredQuery, filter);
     return [...filtered].sort((a, b) => {
       if (sort === "Most tools") return b.count - a.count;
       if (sort === "Name A–Z") return a.name.localeCompare(b.name);
-      return builders.indexOf(a) - builders.indexOf(b);
+      return builderOrder.get(a.slug) - builderOrder.get(b.slug);
     });
-  }, [builders, filter, query, sort]);
+  }, [builderOrder, builders, deferredQuery, filter, sort]);
+  const displayedBuilders = visibleBuilders.slice(0, displayCount);
+
+  useEffect(() => {
+    setDisplayCount(60);
+  }, [deferredQuery, filter, sort]);
   const publicCount = builders.filter((builder) => !builder.demo).length;
   const curatedCount = builders.filter((builder) => builder.curated).length;
   const deviceCount = builders.filter(
@@ -233,15 +254,30 @@ function Atlas({
           </div>
 
           {visibleBuilders.length ? (
-            <div className="builder-grid">
-              {visibleBuilders.map((builder) => (
-                <BuilderTile
-                  key={builder.slug}
-                  builder={builder}
-                  onOpen={onOpen}
-                />
-              ))}
-            </div>
+            <>
+              <div className="builder-grid">
+                {displayedBuilders.map((builder) => (
+                  <BuilderTile
+                    key={builder.slug}
+                    builder={builder}
+                    onOpen={onOpen}
+                  />
+                ))}
+              </div>
+              {displayedBuilders.length < visibleBuilders.length ? (
+                <div className="catalog-more">
+                  <span>
+                    SHOWING {displayedBuilders.length} OF {visibleBuilders.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setDisplayCount((count) => count + 60)}
+                  >
+                    Show 60 more
+                  </button>
+                </div>
+              ) : null}
+            </>
           ) : (
             <div className="empty-state">
               <h2>No stack matches that search.</h2>
@@ -389,13 +425,33 @@ function Profile({
                 <span aria-hidden="true">↗</span>
               </a>
             ) : null}
+            {builder.roleEvidence?.url ? (
+              <a
+                className="role-evidence-link"
+                href={builder.roleEvidence.url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span>{builder.roleEvidence.label || "ROLE SOURCE"}</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            ) : null}
             <p className="privacy-note">
               {builder.curated ? (
-                <>
-                  Curated from public posts, last checked{" "}
-                  {builder.evidenceUpdatedAt}. Each claim links to its source.
-                  A mention does not prove current use or endorsement.
-                </>
+                builder.evidenceMode === "automated-public-mention" ? (
+                  <>
+                    Automatically indexed from public posts, last checked{" "}
+                    {builder.evidenceUpdatedAt}. Every tool is labeled as a
+                    public mention and links to its source. A term match does
+                    not prove use or endorsement.
+                  </>
+                ) : (
+                  <>
+                    Curated from public posts, last checked{" "}
+                    {builder.evidenceUpdatedAt}. Each claim links to its source.
+                    A mention does not prove current use or endorsement.
+                  </>
+                )
               ) : (
                 <>
                   The tools on this page were detected on-device. Stackprint
@@ -514,6 +570,7 @@ export default function App() {
   const [route, setRoute] = useState(routeFromPath);
   const [importedProfile, setImportedProfile] = useState(null);
   const [publishedProfiles, setPublishedProfiles] = useState([]);
+  const [atlasProfiles, setAtlasProfiles] = useState([]);
   const [remoteProfile, setRemoteProfile] = useState(null);
   const [remoteStatus, setRemoteStatus] = useState("idle");
   const [panelOpen, setPanelOpen] = useState(false);
@@ -523,6 +580,18 @@ export default function App() {
     const onPop = () => setRoute(routeFromPath());
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    listAtlasProfiles({ signal: controller.signal })
+      .then(setAtlasProfiles)
+      .catch((error) => {
+        if (error.name !== "AbortError") {
+          console.warn("Public-evidence atlas could not load.", error);
+        }
+      });
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
@@ -548,12 +617,12 @@ export default function App() {
 
   const allBuilders = useMemo(() => {
     const seen = new Set();
-    return [...publishedProfiles, ...BUILDERS].filter((builder) => {
+    return [...publishedProfiles, ...atlasProfiles, ...BUILDERS].filter((builder) => {
       if (seen.has(builder.slug)) return false;
       seen.add(builder.slug);
       return true;
     });
-  }, [publishedProfiles]);
+  }, [atlasProfiles, publishedProfiles]);
 
   const localBuilder =
     route.view === "profile" && importedProfile?.slug === route.slug
@@ -565,14 +634,16 @@ export default function App() {
       : null;
   const builder =
     route.view === "profile"
-      ? localBuilder || catalogBuilder || remoteProfile
+      ? localBuilder ||
+        (catalogBuilder?.generated ? remoteProfile : catalogBuilder) ||
+        remoteProfile
       : null;
 
   useEffect(() => {
     if (
       route.view !== "profile" ||
       localBuilder ||
-      catalogBuilder
+      (catalogBuilder && !catalogBuilder.generated)
     ) {
       setRemoteProfile(null);
       setRemoteStatus("idle");
@@ -582,7 +653,11 @@ export default function App() {
     const controller = new AbortController();
     setRemoteProfile(null);
     setRemoteStatus("loading");
-    getPublishedProfile(route.slug, { signal: controller.signal })
+    getAtlasProfile(route.slug, { signal: controller.signal })
+      .then((profile) =>
+        profile ||
+        getPublishedProfile(route.slug, { signal: controller.signal }),
+      )
       .then((profile) => {
         setRemoteProfile(profile);
         setRemoteStatus(profile ? "ready" : "not-found");
