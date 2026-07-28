@@ -60,10 +60,3 @@ endorsement from an extended scan.
   `--version`; only numeric version strings are retained.
 - Use `--include-system-apps` only when built-in OS apps matter.
 - Use `stackprint doctor` for a non-scanning runtime check.
-
-## Docker
-
-Treat Docker as a reproducible test surface, not the default scanner. A
-container sees the container's filesystem and command path, not the host's full
-desktop application inventory. Do not recommend broad host-directory mounts as
-a workaround.

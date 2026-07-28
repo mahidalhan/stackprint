@@ -1,8 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildProfile } from "../src/profile.js";
+import { readFileSync } from "node:fs";
+import { buildProfile, GENERATOR_VERSION } from "../src/profile.js";
 import { renderMarkdown } from "../src/render.js";
 
+const packageMetadata = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf8")
+);
 const apps = [
   { name: "Figma", category: "design", kind: "app", source: "fixture" },
   { name: "ChatGPT", category: "ai-assistants", kind: "app", source: "fixture" }
@@ -12,6 +16,10 @@ const cli = [
   { name: "Node.js", category: "language-runtimes", kind: "cli", version: "22.14.0" },
   { name: "Go", category: "language-runtimes", kind: "cli", version: "1.24.0" }
 ];
+
+test("profile generator version matches the package version", () => {
+  assert.equal(GENERATOR_VERSION, packageMetadata.version);
+});
 
 test("profile is deterministic and makes bounded builder inferences", () => {
   const profile = buildProfile({

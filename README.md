@@ -108,19 +108,6 @@ npx skills add mahidalhan/stackprint
 The skill exists for privacy gates and state interpretation. Basic CLI usage
 remains discoverable through `stackprint --help`.
 
-## Docker
-
-Docker is useful for reproducible tests:
-
-```bash
-docker build -t stackprint .
-docker run --rm stackprint doctor
-```
-
-It is not the default way to inventory a host. A container sees its own apps
-and commands, not the host's full desktop stack. Stackprint deliberately avoids
-recommending broad host-directory mounts.
-
 ## Local development
 
 ```bash
