@@ -1,0 +1,47 @@
+{
+  "name": "stackprint",
+  "version": "0.1.0",
+  "description": "Generate a private, local-first builder profile from the tools installed on your computer.",
+  "type": "module",
+  "bin": {
+    "stackprint": "./src/cli.js"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "skills",
+    "docs",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check src/cli.js && node --check src/catalog.js && node --check src/discovery.js && node --check src/profile.js && node --check src/render.js",
+    "prepublishOnly": "npm run check && npm test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mahidalhan/stackprint.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mahidalhan/stackprint/issues"
+  },
+  "homepage": "https://github.com/mahidalhan/stackprint#readme",
+  "keywords": [
+    "builder-profile",
+    "cli",
+    "developer-tools",
+    "local-first",
+    "privacy",
+    "stack",
+    "tooling"
+  ],
+  "author": "Mahid Alhan",
+  "license": "MIT"
+}

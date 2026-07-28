@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/mahidalhan/stackprint/main/docs/profile.schema.json",
+  "title": "Stackprint Builder Profile",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generator",
+    "generated_at",
+    "privacy",
+    "system",
+    "summary",
+    "stack",
+    "apps",
+    "cli"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "generator": {
+      "type": "object",
+      "required": ["name", "version", "offline"],
+      "properties": {
+        "name": { "const": "stackprint" },
+        "version": { "type": "string" },
+        "offline": { "const": true }
+      },
+      "additionalProperties": false
+    },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "privacy": { "type": "object" },
+    "system": {
+      "type": "object",
+      "required": ["operating_system", "platform", "architecture"],
+      "properties": {
+        "operating_system": { "type": "string" },
+        "platform": { "type": "string" },
+        "architecture": { "type": "string" },
+        "shell": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "summary": { "type": "object" },
+    "stack": { "type": "array" },
+    "apps": { "type": "array" },
+    "cli": { "type": "array" }
+  },
+  "additionalProperties": false
+}

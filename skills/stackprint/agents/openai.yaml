@@ -1,0 +1,4 @@
+interface:
+  display_name: "Stackprint"
+  short_description: "Build a private profile of your local tool stack"
+  default_prompt: "Use $stackprint to inventory this computer safely and create a reviewable builder profile."
