@@ -92,9 +92,24 @@ new Promise((resolve, reject) => {
       { headers: { Accept: "application/json" } },
     );
     const persisted = await persistedResponse.json();
+    await delay(300);
+    const heading =
+      document.querySelector(".profile-identity h1")?.textContent || null;
+    const renderedTools = [...document.querySelectorAll(".tool-name")].map(
+      (item) => item.textContent,
+    );
     const renderedSignals = [...document.querySelectorAll(".signals .signal p")].map(
       (item) => item.textContent.trim(),
     );
+    if (heading !== "Stackprint E2E") {
+      throw new Error("Published profile disappeared after catalog refresh");
+    }
+    if (
+      JSON.stringify(renderedTools.sort()) !==
+      JSON.stringify(["Cursor", "Node.js"].sort())
+    ) {
+      throw new Error(`Unexpected rendered tools: ${renderedTools.join(", ")}`);
+    }
     if (
       renderedSignals.some((signal) => signal.includes("Design-enabled")) ||
       persisted.profile?.signals?.includes("Design-enabled builder")
@@ -103,10 +118,8 @@ new Promise((resolve, reject) => {
     }
     resolve({
       pathname: location.pathname,
-      heading: document.querySelector(".profile-identity h1")?.textContent,
-      renderedTools: [...document.querySelectorAll(".tool-name")].map(
-        (item) => item.textContent,
-      ),
+      heading,
+      renderedTools,
       persistedStatus: persistedResponse.status,
       persistedTools: persisted.profile?.toolNames,
       renderedSignals,

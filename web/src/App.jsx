@@ -528,7 +528,16 @@ export default function App() {
   useEffect(() => {
     const controller = new AbortController();
     listPublishedProfiles({ signal: controller.signal })
-      .then(setPublishedProfiles)
+      .then((profiles) => {
+        setPublishedProfiles((current) => {
+          const seen = new Set();
+          return [...current, ...profiles].filter((profile) => {
+            if (seen.has(profile.slug)) return false;
+            seen.add(profile.slug);
+            return true;
+          });
+        });
+      })
       .catch((error) => {
         if (error.name !== "AbortError") {
           console.warn("Stackprint catalog could not refresh.", error);
