@@ -3,3 +3,7 @@ coverage/
 .DS_Store
 *.log
 stackprint-profile.*
+web/node_modules/
+web/dist/
+web/.vercel/
+web/.shots/

@@ -3,6 +3,9 @@
 Stackprint turns the tools installed on a computer into a private, reviewable
 builder profile.
 
+[Explore the builder atlas](https://stackprint-builder.vercel.app) or generate
+your own profile locally:
+
 ```bash
 npx --yes github:mahidalhan/stackprint scan
 ```
@@ -24,6 +27,32 @@ The product starts local-first:
 1. Discover the available tool stack.
 2. Generate a profile the owner can inspect.
 3. Share only if and where the owner chooses.
+
+## Builder atlas
+
+The `web/` app turns a reviewed Stackprint JSON file into an editorial builder
+profile. The file is parsed in the browser and is never uploaded by the app.
+The public catalog includes one real sample stack and clearly labeled fictional
+demo profiles.
+
+```bash
+npm --prefix web install
+npm run web:dev
+```
+
+Generate a profile for the import flow with:
+
+```bash
+stackprint scan --json --output stackprint-profile.json
+```
+
+The production-shaped UI can be captured with
+[Shot-scraper](https://shot-scraper.datasette.io/):
+
+```bash
+uvx shot-scraper shot http://127.0.0.1:5173/ \
+  -o stackprint-home.png -w 1440 -h 1000 --reduced-motion --fail
+```
 
 ## Commands
 
