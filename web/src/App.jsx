@@ -1,25 +1,22 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BUILDERS,
   FILTERS,
   HERO_LAYERS,
 } from "./data.js";
+import { PublishPanel } from "./components/PublishPanel.jsx";
+import { filterBuilders } from "./profile-utils.js";
 import {
-  filterBuilders,
-  profileFromStackprint,
-} from "./profile-utils.js";
+  getPublishedProfile,
+  listPublishedProfiles,
+} from "./publishing.js";
 import {
   ArrowIcon,
-  CloseIcon,
   CopyIcon,
   SearchIcon,
   TerminalIcon,
-  UploadIcon,
   XIcon,
 } from "./icons.jsx";
-
-const CLI_COMMAND =
-  "stackprint scan --json --output stackprint-profile.json";
 
 function routeFromPath() {
   const match = window.location.pathname.match(/^\/b\/([^/]+)\/?$/);
@@ -120,7 +117,13 @@ function BuilderTile({ builder, onOpen }) {
         <p>{builder.role}</p>
         <div className="builder-count">
           {builder.count} tools
-          {builder.demo ? <span>demo</span> : <span>real scan</span>}
+          {builder.demo ? (
+            <span>demo</span>
+          ) : builder.published ? (
+            <span>published</span>
+          ) : (
+            <span>real scan</span>
+          )}
         </div>
       </div>
       <div className="tool-line" aria-label="Selected tools">
@@ -133,6 +136,7 @@ function BuilderTile({ builder, onOpen }) {
 }
 
 function Atlas({
+  builders,
   onOpen,
   onBuild,
   onRunCli,
@@ -142,13 +146,17 @@ function Atlas({
   const [sort, setSort] = useState("Recently added");
 
   const visibleBuilders = useMemo(() => {
-    const filtered = filterBuilders(BUILDERS, query, filter);
+    const filtered = filterBuilders(builders, query, filter);
     return [...filtered].sort((a, b) => {
       if (sort === "Most tools") return b.count - a.count;
       if (sort === "Name A–Z") return a.name.localeCompare(b.name);
-      return BUILDERS.indexOf(a) - BUILDERS.indexOf(b);
+      return builders.indexOf(a) - builders.indexOf(b);
     });
-  }, [filter, query, sort]);
+  }, [builders, filter, query, sort]);
+  const publicCount = builders.filter((builder) => !builder.demo).length;
+  const detectedCount = builders
+    .filter((builder) => !builder.demo)
+    .reduce((total, builder) => total + (builder.detectedCount || 0), 0);
 
   return (
     <>
@@ -163,11 +171,11 @@ function Atlas({
               people making what’s next.
             </p>
             <div className="hero-proof">
-              <span>1 REAL STACK</span>
+              <span>{publicCount} PUBLIC {publicCount === 1 ? "STACK" : "STACKS"}</span>
               <i>·</i>
               <span>5 CLEARLY MARKED DEMOS</span>
               <i>·</i>
-              <span>LOCAL-FIRST</span>
+              <span>CONSENT-GATED PUBLISHING</span>
             </div>
           </div>
           <HeroStack />
@@ -211,8 +219,8 @@ function Atlas({
 
           <div className="catalog-meta">
             <span>{visibleBuilders.length} PROFILES</span>
-            <span>134 LOCALLY DETECTED TOOLS</span>
-            <span>1 MANUAL ADDITION: X</span>
+            <span>{detectedCount} REVIEWED TOOL NAMES</span>
+            <span>LOCAL SCAN · PUBLIC BY CHOICE</span>
           </div>
 
           {visibleBuilders.length ? (
@@ -431,132 +439,39 @@ function Profile({
   );
 }
 
-function ImportPanel({ open, onClose, onImport, onCopyCommand, commandCopied }) {
-  const fileRef = useRef(null);
-  const [identity, setIdentity] = useState({
-    name: "",
-    handle: "",
-    xHandle: "",
-    role: "",
-  });
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const handleKey = (event) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [onClose, open]);
-
-  async function readFile(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setError("");
-    try {
-      const payload = JSON.parse(await file.text());
-      const profile = profileFromStackprint(payload, identity);
-      onImport(profile);
-    } catch (readError) {
-      setError(readError.message || "That file could not be read.");
-    } finally {
-      event.target.value = "";
-    }
-  }
-
-  if (!open) return null;
-
+function ProfileLoadState({ status, onHome, onBuild }) {
   return (
-    <div className="panel-backdrop" role="presentation">
-      <section
-        className="import-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="import-title"
-      >
-        <div className="panel-head">
-          <div>
-            <span>LOCAL IMPORT</span>
-            <h2 id="import-title">Build your Stackprint.</h2>
-          </div>
-          <button className="icon-button" type="button" onClick={onClose} aria-label="Close">
-            <CloseIcon />
+    <>
+      <Header
+        onHome={onHome}
+        onBuild={onBuild}
+        onRunCli={onBuild}
+      />
+      <main className="profile-load-state">
+        <span>{status === "loading" ? "LOADING PROFILE" : "PROFILE NOT FOUND"}</span>
+        <h1>
+          {status === "loading"
+            ? "Reading this Stackprint…"
+            : "This Stackprint does not exist."}
+        </h1>
+        {status !== "loading" ? (
+          <button type="button" onClick={onHome}>
+            Return to the builder atlas
           </button>
-        </div>
-        <p className="panel-intro">
-          Generate a JSON profile with the CLI, review it, then open it here.
-          Parsing happens in this browser. Nothing is uploaded.
-        </p>
-        <button className="command-box" type="button" onClick={onCopyCommand}>
-          <code>{CLI_COMMAND}</code>
-          <span>{commandCopied ? "COPIED" : "COPY"}</span>
-        </button>
-        <div className="identity-fields">
-          <label>
-            <span>Name</span>
-            <input
-              value={identity.name}
-              onChange={(event) => setIdentity({ ...identity, name: event.target.value })}
-              placeholder="Your name"
-            />
-          </label>
-          <label>
-            <span>Handle</span>
-            <input
-              value={identity.handle}
-              onChange={(event) => setIdentity({ ...identity, handle: event.target.value })}
-              placeholder="@handle"
-            />
-          </label>
-          <label>
-            <span>What you build</span>
-            <input
-              value={identity.role}
-              onChange={(event) => setIdentity({ ...identity, role: event.target.value })}
-              placeholder="Robotics builder"
-            />
-          </label>
-          <label>
-            <span>X handle (optional)</span>
-            <input
-              value={identity.xHandle}
-              onChange={(event) => setIdentity({ ...identity, xHandle: event.target.value })}
-              placeholder="@handle"
-            />
-          </label>
-        </div>
-        <input
-          ref={fileRef}
-          className="sr-only"
-          type="file"
-          accept="application/json,.json"
-          onChange={readFile}
-        />
-        <button
-          className="upload-action"
-          type="button"
-          onClick={() => fileRef.current?.click()}
-        >
-          <UploadIcon />
-          <span>Open Stackprint JSON</span>
-        </button>
-        {error ? <p className="panel-error" role="alert">{error}</p> : null}
-        <p className="panel-fineprint">
-          Stackprint describes installed tools. It does not claim activity,
-          proficiency, preference, or endorsement.
-        </p>
-      </section>
-    </div>
+        ) : null}
+      </main>
+    </>
   );
 }
 
 export default function App() {
   const [route, setRoute] = useState(routeFromPath);
   const [importedProfile, setImportedProfile] = useState(null);
+  const [publishedProfiles, setPublishedProfiles] = useState([]);
+  const [remoteProfile, setRemoteProfile] = useState(null);
+  const [remoteStatus, setRemoteStatus] = useState("idle");
   const [panelOpen, setPanelOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [commandCopied, setCommandCopied] = useState(false);
 
   useEffect(() => {
     const onPop = () => setRoute(routeFromPath());
@@ -564,12 +479,64 @@ export default function App() {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    listPublishedProfiles({ signal: controller.signal })
+      .then(setPublishedProfiles)
+      .catch((error) => {
+        if (error.name !== "AbortError") {
+          console.warn("Stackprint catalog could not refresh.", error);
+        }
+      });
+    return () => controller.abort();
+  }, []);
+
+  const allBuilders = useMemo(() => {
+    const seen = new Set();
+    return [...publishedProfiles, ...BUILDERS].filter((builder) => {
+      if (seen.has(builder.slug)) return false;
+      seen.add(builder.slug);
+      return true;
+    });
+  }, [publishedProfiles]);
+
+  const localBuilder =
+    route.view === "profile" && importedProfile?.slug === route.slug
+      ? importedProfile
+      : null;
+  const catalogBuilder =
+    route.view === "profile"
+      ? allBuilders.find((item) => item.slug === route.slug) || null
+      : null;
   const builder =
     route.view === "profile"
-      ? importedProfile?.slug === route.slug
-        ? importedProfile
-        : BUILDERS.find((item) => item.slug === route.slug) || BUILDERS[0]
+      ? localBuilder || catalogBuilder || remoteProfile
       : null;
+
+  useEffect(() => {
+    if (
+      route.view !== "profile" ||
+      localBuilder ||
+      catalogBuilder
+    ) {
+      setRemoteProfile(null);
+      setRemoteStatus("idle");
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    setRemoteProfile(null);
+    setRemoteStatus("loading");
+    getPublishedProfile(route.slug, { signal: controller.signal })
+      .then((profile) => {
+        setRemoteProfile(profile);
+        setRemoteStatus(profile ? "ready" : "not-found");
+      })
+      .catch((error) => {
+        if (error.name !== "AbortError") setRemoteStatus("not-found");
+      });
+    return () => controller.abort();
+  }, [catalogBuilder, localBuilder, route]);
 
   function go(path, nextRoute) {
     window.history.pushState({}, "", path);
@@ -591,10 +558,19 @@ export default function App() {
     window.setTimeout(() => setter(false), 1800);
   }
 
-  function importProfile(profile) {
+  function previewProfile(profile) {
     setImportedProfile(profile);
     setPanelOpen(false);
     go("/b/local-preview", { view: "profile", slug: "local-preview" });
+  }
+
+  function openPublishedProfile(profile) {
+    setPublishedProfiles((current) => [
+      profile,
+      ...current.filter((item) => item.slug !== profile.slug),
+    ]);
+    setPanelOpen(false);
+    openBuilder(profile);
   }
 
   return (
@@ -607,22 +583,25 @@ export default function App() {
           copied={copied}
           onCopy={() => copyText(window.location.href, setCopied)}
         />
+      ) : route.view === "profile" ? (
+        <ProfileLoadState
+          status={remoteStatus}
+          onHome={openAtlas}
+          onBuild={() => setPanelOpen(true)}
+        />
       ) : (
         <Atlas
+          builders={allBuilders}
           onOpen={openBuilder}
           onBuild={() => setPanelOpen(true)}
-          onRunCli={() => {
-            setPanelOpen(true);
-            copyText(CLI_COMMAND, setCommandCopied);
-          }}
+          onRunCli={() => setPanelOpen(true)}
         />
       )}
-      <ImportPanel
+      <PublishPanel
         open={panelOpen}
         onClose={() => setPanelOpen(false)}
-        onImport={importProfile}
-        commandCopied={commandCopied}
-        onCopyCommand={() => copyText(CLI_COMMAND, setCommandCopied)}
+        onPreview={previewProfile}
+        onPublished={openPublishedProfile}
       />
     </>
   );

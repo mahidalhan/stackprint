@@ -19,52 +19,56 @@ new Promise((resolve, reject) => {
   (async () => {
     document.querySelector(".primary-action")?.click();
     await waitFor(() => document.querySelector('input[type="file"]'));
-
     const payload = {
       schema_version: "1.0",
       generated_at: "2026-07-28T00:00:00.000Z",
       privacy: { scan_mode: "standard" },
       summary: {
         detected_tools: 3,
-        categories: 2,
+        categories: 3,
         builder_signals: ["AI-assisted builder"],
       },
       apps: [
         { name: "Figma", kind: "app", category: "design" },
         { name: "Cursor", kind: "app", category: "ai-assistants" },
       ],
-      cli: [{ name: "Node.js", kind: "cli", category: "runtimes" }],
+      cli: [
+        {
+          name: "Node.js",
+          kind: "cli",
+          category: "language-runtimes",
+        },
+      ],
     };
-    const file = new File([JSON.stringify(payload)], "stackprint-profile.json", {
-      type: "application/json",
-    });
     const transfer = new DataTransfer();
-    transfer.items.add(file);
+    transfer.items.add(
+      new File([JSON.stringify(payload)], "stackprint-profile.json", {
+        type: "application/json",
+      }),
+    );
     const fileInput = document.querySelector('input[type="file"]');
     Object.defineProperty(fileInput, "files", {
       configurable: true,
       value: transfer.files,
     });
     fileInput.dispatchEvent(new Event("change", { bubbles: true }));
-
     await waitFor(() => document.querySelector(".tool-review"));
     const fields = [...document.querySelectorAll(".identity-fields input")];
-    ["Test Builder", "@testbuilder", "Tool maker", "@testbuilder"].forEach(
+    ["Stackprint E2E", "@stackprint-e2e", "Verification builder", ""].forEach(
       (value, index) => setValue(fields[index], value),
     );
-    [...document.querySelectorAll("button")]
-      .find((button) => button.textContent.includes("Preview first"))
-      ?.click();
-
-    await waitFor(() => location.pathname === "/b/local-preview");
+    document.querySelector(".consent-check input")?.click();
+    if (new URLSearchParams(location.search).has("bottom")) {
+      const panel = document.querySelector(".import-panel");
+      panel.scrollTop = panel.scrollHeight;
+      await delay(100);
+    }
     resolve({
-      pathname: location.pathname,
-      heading: document.querySelector(".profile-identity h1")?.textContent,
-      tools: [...document.querySelectorAll(".tool-name")].map(
-        (item) => item.textContent,
-      ),
-      privacy: document.querySelector(".privacy-note")?.textContent.trim(),
-      xHref: document.querySelector(".x-link")?.href,
+      heading: document.querySelector("#publish-title")?.textContent,
+      selected: document.querySelector(".review-summary b")?.textContent,
+      publishDisabled: [...document.querySelectorAll("button")].find(
+        (button) => button.textContent.trim() === "Publish profile",
+      )?.disabled,
     });
   })().catch(reject);
 });

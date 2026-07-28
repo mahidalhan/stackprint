@@ -57,6 +57,9 @@ export function profileFromStackprint(payload, identity = {}) {
     motif: "local",
     demo: false,
     localPreview: true,
+    generatedAt: payload.generated_at || "",
+    scanMode: payload.privacy?.scan_mode || "standard",
+    sourcePayload: payload,
     tools: [...grouped.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([groupName, tools]) => ({
@@ -67,6 +70,62 @@ export function profileFromStackprint(payload, identity = {}) {
       ? payload.summary.builder_signals.slice(0, 4)
       : [],
   };
+}
+
+export function toolKey(groupName, tool) {
+  return `${groupName}\u001f${tool.kind}\u001f${tool.name}`;
+}
+
+export function publicProfileRequest(profile, identity, selected) {
+  const groups = profile.tools
+    .map((group) => ({
+      name: group.name,
+      tools: group.tools.filter((tool) =>
+        selected.has(toolKey(group.name, tool)),
+      ),
+    }))
+    .filter((group) => group.tools.length);
+
+  return {
+    consent: { public: true },
+    identity: {
+      name: identity.name,
+      handle: identity.handle,
+      role: identity.role,
+      xHandle: identity.xHandle,
+    },
+    tools: groups,
+    signals: deriveSignalsFromGroups(groups),
+    generatedAt: profile.generatedAt,
+    scanMode: profile.scanMode,
+  };
+}
+
+function deriveSignalsFromGroups(groups) {
+  const counts = Object.fromEntries(
+    groups.map((group) => [
+      group.name.toLowerCase().replaceAll(" ", "-"),
+      group.tools.length,
+    ]),
+  );
+  const signals = [];
+
+  if ((counts["ai-assistants"] ?? 0) > 0) signals.push("AI-assisted builder");
+  if ((counts["language-runtimes"] ?? 0) >= 3) signals.push("Polyglot builder");
+  if (
+    (counts.cloud ?? 0) +
+      (counts.containers ?? 0) +
+      (counts.infrastructure ?? 0) >=
+    3
+  ) {
+    signals.push("Cloud and infrastructure builder");
+  }
+  if ((counts.mobile ?? 0) >= 2) signals.push("Mobile builder");
+  if ((counts.robotics ?? 0) > 0) signals.push("Robotics builder");
+  if ((counts.design ?? 0) > 0) signals.push("Design-enabled builder");
+  if ((counts.databases ?? 0) >= 2) signals.push("Data-oriented builder");
+
+  return signals;
 }
 
 export function filterBuilders(builders, query, category) {

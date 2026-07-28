@@ -1,7 +1,7 @@
 {
   "name": "stackprint",
-  "version": "0.1.2",
-  "description": "Generate a private, local-first builder profile from the tools installed on your computer.",
+  "version": "0.2.0",
+  "description": "Generate, review, and deliberately publish a builder profile from installed tool metadata.",
   "type": "module",
   "bin": {
     "stackprint": "./src/cli.js"
@@ -19,7 +19,7 @@
   ],
   "scripts": {
     "test": "node --test",
-    "check": "node --check src/cli.js && node --check src/catalog.js && node --check src/discovery.js && node --check src/profile.js && node --check src/render.js",
+    "check": "node --check src/cli.js && node --check src/catalog.js && node --check src/discovery.js && node --check src/profile.js && node --check src/publish.js && node --check src/render.js",
     "web:dev": "npm --prefix web run dev",
     "web:build": "npm --prefix web run build",
     "web:test": "npm --prefix web test",

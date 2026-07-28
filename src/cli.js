@@ -1,11 +1,15 @@
 #!/usr/bin/env node
 
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import {
   buildProfile,
+  buildPublishRequest,
+  DEFAULT_PUBLIC_SITE,
   discoverCliTools,
   discoverInstalledApps,
+  formatPublishPreview,
+  publishBuilderProfile,
   renderJson,
   renderMarkdown,
   renderTerminal
@@ -15,6 +19,7 @@ const HELP = `Stackprint — generate a private builder profile from local tool 
 
 Usage:
   stackprint scan [options]
+  stackprint publish --input <profile.json> --name <name> --handle <handle> [options]
   stackprint doctor
   stackprint explain
   stackprint --help
@@ -30,6 +35,17 @@ Scan options:
   --include-system-apps  Include operating-system apps
   --extended             Also list all executable names found on PATH
 
+Publish options:
+  --input <file>         Reviewed JSON created by stackprint scan
+  --name <name>          Public builder name
+  --handle <handle>      Public builder handle
+  --role <text>          What you build (default: Builder)
+  --x-handle <handle>    Optional public X handle
+  --site <url>           Stackprint host (default: ${DEFAULT_PUBLIC_SITE})
+  --dry-run              Show exactly what would be public; no network request
+  --yes                  Confirm the reviewed profile may be uploaded publicly
+  --json                 Emit the publish result as JSON
+
 Privacy:
   Scans run locally without network requests or telemetry. Standard mode reads
   installed app names and checks a public catalog of CLI command names.
@@ -39,6 +55,8 @@ Examples:
   stackprint scan
   stackprint scan --markdown --output stackprint-profile.md
   stackprint scan --json --no-apps
+  stackprint publish --input stackprint-profile.json --name "Maya" --handle maya --dry-run
+  stackprint publish --input stackprint-profile.json --name "Maya" --handle maya --yes
 `;
 
 const EXPLAIN = `What Stackprint reads
@@ -81,6 +99,10 @@ async function main(argv) {
   }
   if (command === "doctor") {
     process.stdout.write(doctor());
+    return;
+  }
+  if (command === "publish") {
+    await runPublish(args);
     return;
   }
   if (command !== "scan" && command !== "profile") {
@@ -126,6 +148,94 @@ async function main(argv) {
   } else {
     process.stdout.write(output);
   }
+}
+
+async function runPublish(args) {
+  const options = parsePublishOptions(args);
+  const source = JSON.parse(await readFile(resolve(options.input), "utf8"));
+  const payload = buildPublishRequest(source, {
+    name: options.name,
+    handle: options.handle,
+    role: options.role,
+    xHandle: options.xHandle
+  });
+
+  if (options.dryRun) {
+    process.stdout.write(formatPublishPreview(payload, options.site));
+    if (options.json) process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+    return;
+  }
+  if (!options.yes) {
+    throw new CliError(
+      "Publishing is public and requires --yes after reviewing a --dry-run preview."
+    );
+  }
+
+  const result = await publishBuilderProfile(payload, options.site);
+  if (options.json) {
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    return;
+  }
+  process.stdout.write(
+    [
+      `Published: ${result.url}`,
+      `Shared: ${result.profile?.count ?? 0} reviewed tool names`,
+      "Not shared: raw scan file, system metadata, paths, histories, or credentials",
+      ""
+    ].join("\n")
+  );
+}
+
+function parsePublishOptions(args) {
+  const options = {
+    input: "",
+    name: "",
+    handle: "",
+    role: "Builder",
+    xHandle: "",
+    site: DEFAULT_PUBLIC_SITE,
+    dryRun: false,
+    yes: false,
+    json: false
+  };
+  const values = {
+    "--input": "input",
+    "-i": "input",
+    "--name": "name",
+    "--handle": "handle",
+    "--role": "role",
+    "--x-handle": "xHandle",
+    "--site": "site"
+  };
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === "--dry-run") options.dryRun = true;
+    else if (arg === "--yes") options.yes = true;
+    else if (arg === "--json") options.json = true;
+    else if (values[arg]) {
+      const value = args[index + 1];
+      if (!value || value.startsWith("-")) {
+        throw new CliError(`${arg} requires a value`);
+      }
+      options[values[arg]] = value;
+      index += 1;
+    } else {
+      throw new CliError(`Unknown publish option: ${arg}`);
+    }
+  }
+
+  if (!options.input) {
+    throw new CliError(
+      "Publish requires --input <reviewed-profile.json>. Run stackprint scan --json --output <file> first."
+    );
+  }
+  if (!options.name) throw new CliError("Publish requires --name <name>.");
+  if (!options.handle) throw new CliError("Publish requires --handle <handle>.");
+  if (options.dryRun && options.yes) {
+    throw new CliError("Choose either --dry-run or --yes, not both.");
+  }
+  return options;
 }
 
 function parseScanOptions(args) {

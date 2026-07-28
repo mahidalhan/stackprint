@@ -1,7 +1,7 @@
 # Stackprint
 
-Stackprint turns the tools installed on a computer into a private, reviewable
-builder profile.
+Stackprint turns the tools installed on a computer into a reviewable builder
+profile, then publishes only the tool names the builder explicitly selects.
 
 [Explore the builder atlas](https://stackprint-builder.vercel.app) or generate
 your own profile locally:
@@ -22,18 +22,21 @@ scattered across screenshots, interviews, dotfiles, and recommendation posts.
 Stackprint creates the missing primitive: a portable toolset profile generated
 on the builder's own machine, with sharing kept optional.
 
-The product starts local-first:
+The product is local-first and consent-gated:
 
 1. Discover the available tool stack.
-2. Generate a profile the owner can inspect.
-3. Share only if and where the owner chooses.
+2. Generate a JSON artifact the owner can inspect.
+3. Remove anything the owner does not want public.
+4. Publish only after a separate consent action.
 
 ## Builder atlas
 
 The `web/` app turns a reviewed Stackprint JSON file into an editorial builder
-profile. The file is parsed in the browser and is never uploaded by the app.
-The public catalog includes one real sample stack and clearly labeled fictional
-demo profiles.
+profile. The raw file is parsed in the browser. The builder selects the public
+tool names, fills in public identity fields, and explicitly consents before the
+reviewed profile is uploaded to Vercel. The raw scan, system metadata, paths,
+histories, and credentials are not sent. Published profiles are durable and
+appear in the public builder atlas alongside clearly labeled fictional demos.
 
 ```bash
 npm --prefix web install
@@ -43,7 +46,28 @@ npm run web:dev
 Generate a profile for the import flow with:
 
 ```bash
-stackprint scan --json --output stackprint-profile.json
+npx --yes github:mahidalhan/stackprint scan \
+  --json \
+  --output stackprint-profile.json
+```
+
+Then choose **Add your stack** at
+[stackprint-builder.vercel.app](https://stackprint-builder.vercel.app), or use
+the fully reviewable CLI publish flow:
+
+```bash
+npx --yes github:mahidalhan/stackprint publish \
+  --input stackprint-profile.json \
+  --name "Your name" \
+  --handle your-handle \
+  --dry-run
+
+# Run only after approving the preview and public destination:
+npx --yes github:mahidalhan/stackprint publish \
+  --input stackprint-profile.json \
+  --name "Your name" \
+  --handle your-handle \
+  --yes
 ```
 
 The production-shaped UI can be captured with
@@ -71,6 +95,13 @@ npx --yes github:mahidalhan/stackprint explain
 
 # Check runtime compatibility without scanning
 npx --yes github:mahidalhan/stackprint doctor
+
+# Preview the exact public boundary without uploading
+npx --yes github:mahidalhan/stackprint publish \
+  --input stackprint-profile.json \
+  --name "Your name" \
+  --handle your-handle \
+  --dry-run
 ```
 
 Other useful controls:
@@ -104,7 +135,13 @@ installation.
 | Browser history or cookies | Never | Never |
 | Environment values or credentials | Never | Never |
 | Username, hostname, home path, repository names | Never | Never |
-| Uploading or publishing | Never | Never |
+| Uploading during `scan` | Never | Never |
+
+`publish` is a separate command with a network request. It requires a reviewed
+JSON file plus `--yes`, sends only the public identity, selected tool names,
+categories, kinds, and bounded builder signals, and returns the durable profile
+URL. Use `--dry-run` first. The browser builder exposes the same boundary and
+lets the owner exclude individual tools.
 
 Profiles are written only when `--output` is supplied. Existing files are not
 overwritten.
@@ -131,7 +168,7 @@ The repository includes a portable Stackprint skill with the safety and sharing
 workflow:
 
 ```bash
-npx skills add mahidalhan/stackprint
+npx skills add mahidalhan/stackprint --skill stackprint
 ```
 
 The skill exists for privacy gates and state interpretation. Basic CLI usage
@@ -142,6 +179,8 @@ remains discoverable through `stackprint --help`.
 ```bash
 npm test
 npm run check
+npm run web:test
+npm run web:build
 node src/cli.js scan --json --no-versions
 ```
 

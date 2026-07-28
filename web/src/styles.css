@@ -999,6 +999,10 @@ svg {
   animation: slide-in 220ms ease both;
 }
 
+.publish-panel {
+  width: min(690px, 100%);
+}
+
 .panel-head {
   display: flex;
   justify-content: space-between;
@@ -1066,6 +1070,72 @@ svg {
   font-weight: 800;
 }
 
+.prompt-box {
+  min-height: 116px;
+  align-items: start;
+}
+
+.publish-mode-tabs {
+  display: flex;
+  margin-bottom: -1px;
+  border-bottom: 1px solid var(--line);
+}
+
+.publish-mode-tabs button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  padding: 0 15px;
+  background: transparent;
+  cursor: pointer;
+  color: rgba(7, 24, 44, 0.6);
+  font-size: 0.72rem;
+}
+
+.publish-mode-tabs button.active {
+  border-color: var(--line);
+  background: var(--ink);
+  color: var(--paper-light);
+}
+
+.publish-mode-tabs svg {
+  width: 15px;
+}
+
+.publish-steps {
+  display: grid;
+  margin: 30px 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.publish-steps li {
+  display: grid;
+  min-height: 68px;
+  grid-template-columns: 145px 1fr;
+  gap: 18px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.publish-steps b {
+  color: var(--blue);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.69rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.publish-steps span {
+  font-family: var(--serif);
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
 .identity-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1111,6 +1181,188 @@ svg {
   letter-spacing: 0.04em;
 }
 
+.upload-action:disabled,
+.preview-action:disabled,
+.icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.review-summary {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 5px 18px;
+  align-items: center;
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 18px 0;
+}
+
+.review-summary > span {
+  grid-column: 1 / -1;
+  color: var(--blue);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+}
+
+.review-summary b {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.review-summary button,
+.text-action {
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  padding: 3px 0;
+  background: transparent;
+  color: var(--blue);
+  cursor: pointer;
+  font-size: 0.72rem;
+}
+
+.tool-review {
+  max-height: 330px;
+  overflow-y: auto;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  background: var(--paper);
+}
+
+.tool-review section {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+
+.tool-review section:last-child {
+  border-bottom: 0;
+}
+
+.tool-review h3 {
+  grid-row: 1 / span 30;
+  margin: 0;
+  border-right: 1px solid var(--line);
+  padding: 15px 12px;
+  color: var(--blue);
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tool-review label {
+  display: grid;
+  min-height: 42px;
+  grid-column: 2;
+  grid-template-columns: 22px 1fr auto;
+  gap: 9px;
+  align-items: center;
+  border-bottom: 1px solid rgba(7, 24, 44, 0.12);
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.tool-review label:last-child {
+  border-bottom: 0;
+}
+
+.tool-review input,
+.consent-check input {
+  accent-color: var(--orange);
+}
+
+.tool-review label > span {
+  font-family: var(--serif);
+  font-size: 0.96rem;
+}
+
+.tool-review label > i {
+  color: rgba(7, 24, 44, 0.52);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.57rem;
+  font-style: normal;
+}
+
+.consent-check {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: start;
+  margin: 24px 0;
+  border-left: 3px solid var(--orange);
+  padding: 14px 16px;
+  background: rgba(243, 83, 26, 0.08);
+  cursor: pointer;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.consent-check input {
+  margin-top: 2px;
+}
+
+.publish-actions {
+  display: grid;
+  grid-template-columns: auto 1fr 1.15fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.preview-action {
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.publish-actions .upload-action {
+  min-height: 58px;
+}
+
+.publish-success {
+  padding-top: 34px;
+}
+
+.success-mark {
+  display: grid;
+  width: 150px;
+  height: 150px;
+  place-items: center;
+  margin-bottom: 30px;
+  border: 1px solid var(--ink);
+  background:
+    linear-gradient(45deg, transparent 49.2%, var(--blue) 49.5% 50.5%, transparent 50.8%),
+    var(--paper);
+  font-family: var(--serif);
+  font-size: 4rem;
+}
+
+.publish-success > p {
+  max-width: 510px;
+  font-family: var(--serif);
+  font-size: 1.12rem;
+  line-height: 1.45;
+}
+
+.publish-success .success-url {
+  margin: 28px 0 18px;
+}
+
+.success-url span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.success-url svg {
+  width: 14px;
+}
+
 .panel-error {
   border-left: 3px solid var(--orange);
   padding-left: 14px;
@@ -1123,6 +1375,40 @@ svg {
   color: rgba(7, 24, 44, 0.6);
   font-size: 0.72rem;
   line-height: 1.5;
+}
+
+.profile-load-state {
+  display: grid;
+  min-height: calc(100vh - 76px);
+  place-content: center;
+  justify-items: start;
+  padding: 40px;
+  background: var(--paper-light);
+}
+
+.profile-load-state > span {
+  color: var(--orange);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+}
+
+.profile-load-state h1 {
+  max-width: 720px;
+  margin: 18px 0 30px;
+  font-family: var(--serif);
+  font-size: clamp(3rem, 7vw, 7rem);
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  line-height: 0.95;
+}
+
+.profile-load-state button {
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  padding: 3px 0;
+  background: transparent;
+  cursor: pointer;
 }
 
 @keyframes fade-in {
@@ -1400,6 +1686,25 @@ svg {
 
   .identity-fields {
     grid-template-columns: 1fr;
+  }
+
+  .publish-steps li {
+    grid-template-columns: 1fr;
+    gap: 5px;
+    padding: 14px 0;
+  }
+
+  .tool-review section {
+    grid-template-columns: 94px minmax(0, 1fr);
+  }
+
+  .publish-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .publish-actions .text-action {
+    grid-column: 1 / -1;
+    justify-self: start;
   }
 }
 

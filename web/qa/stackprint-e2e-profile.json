@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "generator": {
+    "name": "stackprint",
+    "version": "0.2.0",
+    "offline": true
+  },
+  "generated_at": "2026-07-28T00:00:00.000Z",
+  "privacy": {
+    "scan_mode": "standard",
+    "network_used": false,
+    "third_party_commands_executed": false,
+    "claims_activity": false,
+    "excluded": [
+      "file contents",
+      "shell history",
+      "browser history",
+      "environment values",
+      "credentials and tokens",
+      "hostnames and usernames",
+      "repository names"
+    ]
+  },
+  "system": {
+    "operating_system": "Fixture OS",
+    "platform": "fixture",
+    "architecture": "fixture",
+    "shell": "fixture"
+  },
+  "summary": {
+    "detected_tools": 2,
+    "detected_apps": 1,
+    "detected_cli_tools": 1,
+    "categories": 2,
+    "builder_signals": [
+      "AI-assisted builder"
+    ]
+  },
+  "stack": [
+    {
+      "category": "ai-assistants",
+      "tools": [
+        {
+          "name": "Cursor",
+          "kind": "app"
+        }
+      ]
+    },
+    {
+      "category": "language-runtimes",
+      "tools": [
+        {
+          "name": "Node.js",
+          "kind": "cli"
+        }
+      ]
+    }
+  ],
+  "apps": [
+    {
+      "name": "Cursor",
+      "category": "ai-assistants",
+      "kind": "app"
+    }
+  ],
+  "cli": [
+    {
+      "name": "Node.js",
+      "category": "language-runtimes",
+      "kind": "cli"
+    }
+  ]
+}
