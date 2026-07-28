@@ -9,6 +9,7 @@ import {
   discoverCliTools,
   discoverInstalledApps,
   formatPublishPreview,
+  GENERATOR_VERSION,
   publishBuilderProfile,
   renderJson,
   renderMarkdown,
@@ -22,6 +23,7 @@ Usage:
   stackprint publish --input <profile.json> --name <name> --handle <handle> [options]
   stackprint doctor
   stackprint explain
+  stackprint --version
   stackprint --help
 
 Scan options:
@@ -89,6 +91,14 @@ async function main(argv) {
   const args = [...argv];
   const command = args[0]?.startsWith("-") ? "scan" : (args.shift() ?? "scan");
 
+  if (
+    command === "version" ||
+    args.includes("--version") ||
+    args.includes("-V")
+  ) {
+    process.stdout.write(`${GENERATOR_VERSION}\n`);
+    return;
+  }
   if (command === "help" || args.includes("--help") || args.includes("-h")) {
     process.stdout.write(HELP);
     return;

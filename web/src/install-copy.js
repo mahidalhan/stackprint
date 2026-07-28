@@ -1,8 +1,8 @@
 export const RUN_ONCE_COMMAND =
-  "npx --yes github:mahidalhan/stackprint#v0.3.1 scan --json --output stackprint-profile.json";
+  "npx --yes github:mahidalhan/stackprint#v0.3.2 scan --json --output stackprint-profile.json";
 
 export const INSTALL_CLI_COMMAND =
-  "npm install --global github:mahidalhan/stackprint#v0.3.1";
+  "npm install --global github:mahidalhan/stackprint#v0.3.2";
 
 export const INSTALL_SKILL_COMMAND =
   "npx skills add mahidalhan/stackprint --skill stackprint -a codex -g -y";

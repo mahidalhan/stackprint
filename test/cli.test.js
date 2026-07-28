@@ -9,6 +9,13 @@ import { tmpdir } from "node:os";
 const projectRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const cliPath = join(projectRoot, "src/cli.js");
 
+test("--version reports the installed Stackprint release", () => {
+  const output = execFileSync(process.execPath, [cliPath, "--version"], {
+    encoding: "utf8",
+  });
+  assert.equal(output.trim(), "0.3.2");
+});
+
 test("doctor is non-scanning and reports readiness", () => {
   const output = execFileSync(process.execPath, [cliPath, "doctor"], {
     encoding: "utf8"

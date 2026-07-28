@@ -1,7 +1,7 @@
 import { currentSystemProfile } from "./discovery.js";
 
 export const SCHEMA_VERSION = "1.0";
-export const GENERATOR_VERSION = "0.3.1";
+export const GENERATOR_VERSION = "0.3.2";
 
 export function buildProfile({
   apps = [],

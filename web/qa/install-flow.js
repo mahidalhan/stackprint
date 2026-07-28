@@ -40,7 +40,7 @@ new Promise((resolve, reject) => {
       hasVersionPin: commands.every(
         (command) =>
           !command.includes("github:mahidalhan/stackprint") ||
-          command.includes("#v0.3.1"),
+          command.includes("#v0.3.2"),
       ),
     });
   })().catch(reject);
