@@ -8,6 +8,17 @@ description: Safely inventory installed apps and developer command-line tools, t
 Create a local builder profile from installed-tool metadata. Treat detection as
 evidence that a tool is available, never proof that it is actively used.
 
+## Prerequisite
+
+Require `stackprint` to already be installed and available on `PATH`. Check with:
+
+```bash
+command -v stackprint
+```
+
+If it is missing, do not download or execute remote code automatically. Direct
+the user to the project README to choose and approve an installation method.
+
 ## Workflow
 
 1. Explain the scan contract before first use:
@@ -19,19 +30,19 @@ evidence that a tool is available, never proof that it is actively used.
 2. Inspect the exact data contract when needed:
 
    ```bash
-   npx --yes github:mahidalhan/stackprint explain
+   stackprint explain
    ```
 
 3. Run the standard scan:
 
    ```bash
-   npx --yes github:mahidalhan/stackprint scan
+   stackprint scan
    ```
 
 4. Generate a reviewable artifact only when requested:
 
    ```bash
-   npx --yes github:mahidalhan/stackprint scan --markdown --output stackprint-profile.md
+   stackprint scan --markdown --output stackprint-profile.md
    ```
 
    Use `--json` for structured data. The CLI refuses to overwrite an existing
@@ -45,7 +56,7 @@ Use `--extended` only when the user explicitly wants custom PATH executable
 names included. Warn that private internal command names may appear:
 
 ```bash
-npx --yes github:mahidalhan/stackprint scan --extended --json
+stackprint scan --extended --json
 ```
 
 Do not infer app activity, frequency, recency, skill level, identity, or
