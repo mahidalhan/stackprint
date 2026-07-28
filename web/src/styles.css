@@ -907,11 +907,26 @@ svg {
   font-weight: 800;
 }
 
+.tool-source.public {
+  color: var(--blue);
+  font-weight: 800;
+  text-align: right;
+}
+
 .detected-mark {
   color: var(--blue);
   font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
   font-size: 0.68rem;
   text-align: right;
+}
+
+.evidence-mark {
+  text-decoration: none;
+}
+
+.evidence-mark:hover,
+.evidence-mark:focus-visible {
+  color: var(--orange);
 }
 
 .signals {
@@ -1103,6 +1118,63 @@ svg {
 
 .publish-mode-tabs svg {
   width: 15px;
+}
+
+.setup-route {
+  border-top: 1px solid var(--line);
+}
+
+.setup-block {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 14px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.setup-number {
+  color: var(--orange);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.setup-copy > b {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.setup-copy > p {
+  margin: 6px 0 14px;
+  color: rgba(7, 24, 44, 0.68);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.command-box.compact {
+  padding: 13px 15px;
+}
+
+.install-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 22px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.install-links a {
+  color: var(--blue);
+  font-size: 0.68rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.install-links a:hover,
+.install-links a:focus-visible {
+  color: var(--orange);
 }
 
 .publish-steps {
@@ -1692,6 +1764,11 @@ svg {
     grid-template-columns: 1fr;
     gap: 5px;
     padding: 14px 0;
+  }
+
+  .setup-block {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 10px;
   }
 
   .tool-review section {

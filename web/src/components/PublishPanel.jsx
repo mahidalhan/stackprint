@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CloseIcon,
   CopyIcon,
@@ -10,12 +10,13 @@ import {
   publicProfileRequest,
   toolKey,
 } from "../profile-utils.js";
+import {
+  AGENT_PROMPT,
+  INSTALL_CLI_COMMAND,
+  INSTALL_SKILL_COMMAND,
+  RUN_ONCE_COMMAND,
+} from "../install-copy.js";
 import { publishProfile } from "../publishing.js";
-
-const CLI_COMMAND =
-  "npx --yes github:mahidalhan/stackprint scan --json --output stackprint-profile.json";
-const AGENT_PROMPT =
-  "Use the Stackprint skill to scan this computer, let me review exactly what will be public, then publish my approved builder profile to stackprint-builder.vercel.app.";
 
 export function PublishPanel({
   open,
@@ -34,10 +35,25 @@ export function PublishPanel({
   });
   const [selected, setSelected] = useState(() => new Set());
   const [consent, setConsent] = useState(false);
-  const [installMode, setInstallMode] = useState("command");
+  const [installMode, setInstallMode] = useState("terminal");
   const [copied, setCopied] = useState("");
   const [error, setError] = useState("");
   const [published, setPublished] = useState(null);
+
+  const resetWorkflow = useCallback(() => {
+    setPhase("scan");
+    setSourceProfile(null);
+    setIdentity({ name: "", handle: "", xHandle: "", role: "" });
+    setSelected(new Set());
+    setConsent(false);
+    setError("");
+    setPublished(null);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    if (phase === "success") resetWorkflow();
+    onClose();
+  }, [onClose, phase, resetWorkflow]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -46,7 +62,7 @@ export function PublishPanel({
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [open, phase]);
+  }, [handleClose, open, phase]);
 
   const allToolKeys = useMemo(
     () =>
@@ -67,21 +83,6 @@ export function PublishPanel({
     await navigator.clipboard.writeText(value);
     setCopied(key);
     window.setTimeout(() => setCopied(""), 1800);
-  }
-
-  function resetWorkflow() {
-    setPhase("scan");
-    setSourceProfile(null);
-    setIdentity({ name: "", handle: "", xHandle: "", role: "" });
-    setSelected(new Set());
-    setConsent(false);
-    setError("");
-    setPublished(null);
-  }
-
-  function handleClose() {
-    if (phase === "success") resetWorkflow();
-    onClose();
   }
 
   async function readFile(event) {
@@ -169,14 +170,14 @@ export function PublishPanel({
           <div>
             <span>
               {phase === "scan"
-                ? "01 / SCAN LOCALLY"
+                ? "01 / INSTALL & SCAN LOCALLY"
                 : phase === "success"
                   ? "03 / LIVE"
                   : "02 / REVIEW & PUBLISH"}
             </span>
             <h2 id="publish-title">
               {phase === "scan"
-                ? "Build your Stackprint."
+                ? "Get Stackprint."
                 : phase === "success"
                   ? "Your profile is live."
                   : "Choose what becomes public."}
@@ -263,42 +264,123 @@ function ScanStep({
   onCopy,
   onOpen,
 }) {
-  const value = installMode === "command" ? CLI_COMMAND : AGENT_PROMPT;
   return (
     <>
       <p className="panel-intro">
-        The scan runs on your computer. It reads installed tool names, never
-        files, history, credentials, or activity. Nothing is uploaded yet.
+        No installer app or Docker image. Choose Terminal or your coding agent,
+        then copy the steps below. The scan stays on your computer.
       </p>
       <div className="publish-mode-tabs" aria-label="Choose setup path">
         <button
           type="button"
-          className={installMode === "command" ? "active" : ""}
-          onClick={() => setInstallMode("command")}
+          className={installMode === "terminal" ? "active" : ""}
+          onClick={() => setInstallMode("terminal")}
         >
           <TerminalIcon />
-          Command
+          Terminal
         </button>
         <button
           type="button"
           className={installMode === "agent" ? "active" : ""}
           onClick={() => setInstallMode("agent")}
         >
-          Agent prompt
+          Codex / agent
         </button>
       </div>
-      <button
-        className={`command-box ${installMode === "agent" ? "prompt-box" : ""}`}
-        type="button"
-        onClick={() => onCopy(value, installMode)}
-      >
-        <code>{value}</code>
-        <span>{copied === installMode ? "COPIED" : "COPY"}</span>
-      </button>
+      {installMode === "terminal" ? (
+        <div className="setup-route">
+          <SetupBlock
+            number="1"
+            title="Run once — no manual download"
+            description="Requires Node.js 20+. npx downloads the pinned open-source CLI from GitHub, runs the local scan, and writes one JSON file."
+          >
+            <CopyCommand
+              value={RUN_ONCE_COMMAND}
+              copyKey="run-once"
+              copied={copied}
+              onCopy={onCopy}
+            />
+          </SetupBlock>
+          <SetupBlock
+            number="OR"
+            title="Install the stackprint command"
+            description="Use this if you want stackprint available in Terminal after today."
+          >
+            <CopyCommand
+              value={INSTALL_CLI_COMMAND}
+              copyKey="install-cli"
+              copied={copied}
+              onCopy={onCopy}
+              compact
+            />
+          </SetupBlock>
+        </div>
+      ) : (
+        <div className="setup-route">
+          <SetupBlock
+            number="1"
+            title="Install the CLI"
+            description="The skill controls the safe workflow; the CLI performs the local scan."
+          >
+            <CopyCommand
+              value={INSTALL_CLI_COMMAND}
+              copyKey="agent-cli"
+              copied={copied}
+              onCopy={onCopy}
+              compact
+            />
+          </SetupBlock>
+          <SetupBlock
+            number="2"
+            title="Install the agent skill"
+            description="This adds Stackprint’s privacy and approval rules to Codex and other supported agents."
+          >
+            <CopyCommand
+              value={INSTALL_SKILL_COMMAND}
+              copyKey="agent-skill"
+              copied={copied}
+              onCopy={onCopy}
+              compact
+            />
+          </SetupBlock>
+          <SetupBlock
+            number="3"
+            title="Paste this into a new task"
+            description="The agent will stop at the review boundary and ask before publishing."
+          >
+            <CopyCommand
+              value={AGENT_PROMPT}
+              copyKey="agent-prompt"
+              copied={copied}
+              onCopy={onCopy}
+              prompt
+            />
+          </SetupBlock>
+        </div>
+      )}
+      <div className="install-links">
+        <a
+          href="https://github.com/mahidalhan/stackprint/releases/latest"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Download release ↗
+        </a>
+        <a
+          href="https://github.com/mahidalhan/stackprint"
+          target="_blank"
+          rel="noreferrer"
+        >
+          View source ↗
+        </a>
+        <a href="https://nodejs.org/en/download" target="_blank" rel="noreferrer">
+          Get Node.js ↗
+        </a>
+      </div>
       <ol className="publish-steps">
         <li>
-          <b>Run locally</b>
-          <span>Stackprint creates one reviewable JSON file.</span>
+          <b>Scan locally</b>
+          <span>Only installed app names and known CLI presence are read.</span>
         </li>
         <li>
           <b>Open it here</b>
@@ -314,11 +396,46 @@ function ScanStep({
         <span>Open Stackprint JSON</span>
       </button>
       <p className="panel-fineprint">
-        Like skills.sh, the website is the public directory and the CLI is the
-        primary action surface. Your raw machine profile stays local until you
-        choose what to publish.
+        The website is the public directory; the open-source CLI is the local
+        scanner. Your raw machine profile stays local until you choose what to
+        publish.
       </p>
     </>
+  );
+}
+
+function SetupBlock({ number, title, description, children }) {
+  return (
+    <section className="setup-block">
+      <span className="setup-number">{number}</span>
+      <div className="setup-copy">
+        <b>{title}</b>
+        <p>{description}</p>
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function CopyCommand({
+  value,
+  copyKey,
+  copied,
+  onCopy,
+  compact = false,
+  prompt = false,
+}) {
+  return (
+    <button
+      className={`command-box ${compact ? "compact" : ""} ${
+        prompt ? "prompt-box" : ""
+      }`}
+      type="button"
+      onClick={() => onCopy(value, copyKey)}
+    >
+      <code>{value}</code>
+      <span>{copied === copyKey ? "COPIED" : "COPY"}</span>
+    </button>
   );
 }
 

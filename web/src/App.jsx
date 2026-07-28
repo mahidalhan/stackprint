@@ -59,7 +59,7 @@ function Header({ onHome, onBuild, onRunCli, profile, copied, onCopy }) {
               <ArrowIcon />
             </button>
             <button className="secondary-action" type="button" onClick={onRunCli}>
-              <span>Run the CLI</span>
+              <span>Install Stackprint</span>
               <TerminalIcon />
             </button>
           </>
@@ -116,8 +116,10 @@ function BuilderTile({ builder, onOpen }) {
         </div>
         <p>{builder.role}</p>
         <div className="builder-count">
-          {builder.count} tools
-          {builder.demo ? (
+          {builder.count} {builder.curated ? "sourced tools" : "tools"}
+          {builder.curated ? (
+            <span>public evidence</span>
+          ) : builder.demo ? (
             <span>demo</span>
           ) : builder.published ? (
             <span>published</span>
@@ -154,9 +156,16 @@ function Atlas({
     });
   }, [builders, filter, query, sort]);
   const publicCount = builders.filter((builder) => !builder.demo).length;
+  const curatedCount = builders.filter((builder) => builder.curated).length;
+  const deviceCount = builders.filter(
+    (builder) => !builder.demo && !builder.curated,
+  ).length;
   const detectedCount = builders
-    .filter((builder) => !builder.demo)
+    .filter((builder) => !builder.demo && !builder.curated)
     .reduce((total, builder) => total + (builder.detectedCount || 0), 0);
+  const sourcedCount = builders
+    .filter((builder) => builder.curated)
+    .reduce((total, builder) => total + builder.count, 0);
 
   return (
     <>
@@ -171,11 +180,11 @@ function Atlas({
               people making what’s next.
             </p>
             <div className="hero-proof">
+              <span>{deviceCount} CONSENTED {deviceCount === 1 ? "SCAN" : "SCANS"}</span>
+              <i>·</i>
+              <span>{curatedCount} PUBLIC-EVIDENCE PROFILES</span>
+              <i>·</i>
               <span>{publicCount} PUBLIC {publicCount === 1 ? "STACK" : "STACKS"}</span>
-              <i>·</i>
-              <span>5 CLEARLY MARKED DEMOS</span>
-              <i>·</i>
-              <span>CONSENT-GATED PUBLISHING</span>
             </div>
           </div>
           <HeroStack />
@@ -220,7 +229,7 @@ function Atlas({
           <div className="catalog-meta">
             <span>{visibleBuilders.length} PROFILES</span>
             <span>{detectedCount} REVIEWED TOOL NAMES</span>
-            <span>LOCAL SCAN · PUBLIC BY CHOICE</span>
+            <span>{sourcedCount} SOURCED TOOL CLAIMS</span>
           </div>
 
           {visibleBuilders.length ? (
@@ -247,10 +256,12 @@ function Atlas({
   );
 }
 
-function Fingerprint({ groups }) {
+function Fingerprint({ groups, curated }) {
   return (
     <div className="fingerprint" aria-label="Stack fingerprint by category">
-      <span className="fingerprint-label">STACK FINGERPRINT</span>
+      <span className="fingerprint-label">
+        {curated ? "PUBLIC EVIDENCE MAP" : "STACK FINGERPRINT"}
+      </span>
       <div className="fingerprint-groups">
         {groups.slice(0, 8).map((group, groupIndex) => (
           <div className="fingerprint-column" key={group.name}>
@@ -284,11 +295,25 @@ function ToolRow({ item }) {
       <span className="tool-glyph" aria-hidden="true">{initials}</span>
       <span className="tool-name">{item.name}</span>
       <span className={`tool-source ${item.source}`}>
-        {item.source === "manual" ? "MANUAL" : item.kind.toUpperCase()}
+        {item.evidence?.label ||
+          (item.source === "manual" ? "MANUAL" : item.kind.toUpperCase())}
       </span>
-      <span className="detected-mark" aria-hidden="true">
-        {item.source === "manual" ? "+" : item.kind === "cli" ? ">_" : "●"}
-      </span>
+      {item.evidence ? (
+        <a
+          className="detected-mark evidence-mark"
+          href={item.evidence.url}
+          target="_blank"
+          rel="noreferrer"
+          title={`${item.evidence.note} Posted ${item.evidence.date}.`}
+          aria-label={`Open public evidence for ${item.name}`}
+        >
+          ↗
+        </a>
+      ) : (
+        <span className="detected-mark" aria-hidden="true">
+          {item.source === "manual" ? "+" : item.kind === "cli" ? ">_" : "●"}
+        </span>
+      )}
     </li>
   );
 }
@@ -338,10 +363,19 @@ function Profile({
             <span className="handle">{builder.handle}</span>
             <p>{builder.role}</p>
             <div className="profile-count">
-              {builder.detectedCount ?? builder.count} DETECTED
-              {builder.manualCount ? ` · ${builder.manualCount} MANUAL` : ""}
-              {" · "}
-              {builder.categories ?? builder.tools.length} CATEGORIES
+              {builder.curated ? (
+                <>
+                  {builder.count} PUBLICLY SOURCED · {builder.evidenceCount}{" "}
+                  SOURCES · {builder.categories} CATEGORIES
+                </>
+              ) : (
+                <>
+                  {builder.detectedCount ?? builder.count} DETECTED
+                  {builder.manualCount ? ` · ${builder.manualCount} MANUAL` : ""}
+                  {" · "}
+                  {builder.categories ?? builder.tools.length} CATEGORIES
+                </>
+              )}
             </div>
             {builder.xUrl ? (
               <a
@@ -356,11 +390,21 @@ function Profile({
               </a>
             ) : null}
             <p className="privacy-note">
-              The tools on this page were detected on-device. Stackprint does
-              not inspect files, history, credentials, or activity.
+              {builder.curated ? (
+                <>
+                  Curated from public posts, last checked{" "}
+                  {builder.evidenceUpdatedAt}. Each claim links to its source.
+                  A mention does not prove current use or endorsement.
+                </>
+              ) : (
+                <>
+                  The tools on this page were detected on-device. Stackprint
+                  does not inspect files, history, credentials, or activity.
+                </>
+              )}
             </p>
           </div>
-          <Fingerprint groups={allGroups} />
+          <Fingerprint groups={allGroups} curated={builder.curated} />
         </section>
 
         <section className="profile-directory">
@@ -410,7 +454,7 @@ function Profile({
               )}
             </div>
             <aside className="signals">
-              <h2>BUILDER SIGNALS</h2>
+              <h2>{builder.curated ? "EVIDENCE NOTES" : "BUILDER SIGNALS"}</h2>
               {(builder.signals || []).map((signal, index) => (
                 <div className="signal" key={signal}>
                   <span aria-hidden="true">
@@ -420,7 +464,9 @@ function Profile({
                 </div>
               ))}
               <p className="signal-note">
-                Signals describe the available stack, not skill level or usage.
+                {builder.curated
+                  ? "Labels describe only what the linked public post supports. This is not a device scan or an endorsement by the builder."
+                  : "Signals describe the available stack, not skill level or usage."}
               </p>
             </aside>
           </div>
