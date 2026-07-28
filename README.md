@@ -13,7 +13,7 @@ installer app and Docker is not used. To download the pinned open-source CLI,
 run one local scan, and create a reviewable JSON:
 
 ```bash
-npx --yes github:mahidalhan/stackprint#v0.3.0 \
+npx --yes github:mahidalhan/stackprint#v0.3.1 \
   scan --json --output stackprint-profile.json
 ```
 
@@ -21,7 +21,7 @@ npx --yes github:mahidalhan/stackprint#v0.3.0 \
 the `stackprint` command installed:
 
 ```bash
-npm install --global github:mahidalhan/stackprint#v0.3.0
+npm install --global github:mahidalhan/stackprint#v0.3.1
 stackprint doctor
 ```
 
@@ -65,7 +65,7 @@ npm run web:dev
 Generate a profile for the import flow with:
 
 ```bash
-npx --yes github:mahidalhan/stackprint#v0.3.0 scan \
+npx --yes github:mahidalhan/stackprint#v0.3.1 scan \
   --json \
   --output stackprint-profile.json
 ```
@@ -75,14 +75,14 @@ Then choose **Add your stack** at
 the fully reviewable CLI publish flow:
 
 ```bash
-npx --yes github:mahidalhan/stackprint#v0.3.0 publish \
+npx --yes github:mahidalhan/stackprint#v0.3.1 publish \
   --input stackprint-profile.json \
   --name "Your name" \
   --handle your-handle \
   --dry-run
 
 # Run only after approving the preview and public destination:
-npx --yes github:mahidalhan/stackprint#v0.3.0 publish \
+npx --yes github:mahidalhan/stackprint#v0.3.1 publish \
   --input stackprint-profile.json \
   --name "Your name" \
   --handle your-handle \
@@ -101,22 +101,22 @@ uvx shot-scraper shot http://127.0.0.1:5173/ \
 
 ```bash
 # Human-readable local summary
-npx --yes github:mahidalhan/stackprint#v0.3.0 scan
+npx --yes github:mahidalhan/stackprint#v0.3.1 scan
 
 # Shareable Markdown file
-npx --yes github:mahidalhan/stackprint#v0.3.0 scan --markdown --output stackprint-profile.md
+npx --yes github:mahidalhan/stackprint#v0.3.1 scan --markdown --output stackprint-profile.md
 
 # Structured JSON
-npx --yes github:mahidalhan/stackprint#v0.3.0 scan --json
+npx --yes github:mahidalhan/stackprint#v0.3.1 scan --json
 
 # Inspect the privacy contract without scanning
-npx --yes github:mahidalhan/stackprint#v0.3.0 explain
+npx --yes github:mahidalhan/stackprint#v0.3.1 explain
 
 # Check runtime compatibility without scanning
-npx --yes github:mahidalhan/stackprint#v0.3.0 doctor
+npx --yes github:mahidalhan/stackprint#v0.3.1 doctor
 
 # Preview the exact public boundary without uploading
-npx --yes github:mahidalhan/stackprint#v0.3.0 publish \
+npx --yes github:mahidalhan/stackprint#v0.3.1 publish \
   --input stackprint-profile.json \
   --name "Your name" \
   --handle your-handle \
@@ -187,8 +187,8 @@ Install the CLI first, then add the portable Stackprint skill with the safety
 and sharing workflow:
 
 ```bash
-npm install --global github:mahidalhan/stackprint#v0.3.0
-npx skills add mahidalhan/stackprint --skill stackprint -g -y
+npm install --global github:mahidalhan/stackprint#v0.3.1
+npx skills add mahidalhan/stackprint --skill stackprint -a codex -g -y
 ```
 
 The skill exists for privacy gates and state interpretation. Basic CLI usage

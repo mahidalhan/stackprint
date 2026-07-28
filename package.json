@@ -1,6 +1,6 @@
 {
   "name": "stackprint",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Generate, review, and deliberately publish a builder profile from installed tool metadata.",
   "type": "module",
   "bin": {
